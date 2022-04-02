@@ -13,6 +13,7 @@ INNER JOIN titles as ttl
 	ON (e.emp_no = ttl.emp_no)
 WHERE (birth_date BETWEEN '1952-01-01' AND '1955-12-31')
 ORDER BY e.emp_no;
+SELECT * FROM retirement_titles;
 
 -- Use Dictinct with Orderby to remove duplicate rows
 SELECT DISTINCT ON (rt.emp_no) rt.emp_no,
@@ -47,19 +48,17 @@ SELECT DISTINCT ON (e.emp_no) e.emp_no,
 INTO mentorship_eligibilty
 FROM employees as e
 INNER JOIN dept_emp AS de
-ON (e.emp_no = de.emp_no)
+	ON (e.emp_no = de.emp_no)
 INNER JOIN titles AS ttl
-ON (e.emp_no = ttl.emp_no)
+	ON (e.emp_no = ttl.emp_no)
 WHERE (de.to_date = '9999-01-01')
 	AND (e.birth_date BETWEEN '1965-01-01' AND '1965-12-31')
 ORDER BY e.emp_no;
 
 
-
 -- DELIVERABLE 3
 
 -- 1. How many roles will need to be filled as the "silver tsunami" begins to make an impact?
-
 SELECT * FROM retiring_titles;
 -- a. Number of titles needing to be filled
 SELECT COUNT(title) FROM retiring_titles;
@@ -67,9 +66,27 @@ SELECT COUNT(title) FROM retiring_titles;
 SELECT SUM("count") FROM retiring_titles;
 
 -- 2. Are there enough qualified, retirement-ready employees in the departments to mentor the next generation of Pewlett Hackard employees?
-
 SELECT COUNT(me.title),
 	me.title
+INTO eligible_mentors
 FROM mentorship_eligibilty as me
 GROUP BY me.title
 ORDER BY COUNT(me.title) DESC;
+
+SELECT * FROM eligible_mentors;
+-- Query calculation to determine the number of expected new hires per mentor
+SELECT rt.title,
+	rt.count as "count_expected_new_hires",
+	em.count as "count_eligible_mentors"
+INTO count_mentor_newhires
+FROM retiring_titles as rt
+FULL OUTER JOIN eligible_mentors as em
+	ON (rt.title = em.title);
+	
+SELECT cmn.title, 
+	cmn.count_expected_new_hires, 
+	cmn.count_eligible_mentors, cmn.count_expected_new_hires/cmn.count_eligible_mentors as "new_hires_per_mentor"
+FROM count_mentor_newhires as cmn;
+
+
+
